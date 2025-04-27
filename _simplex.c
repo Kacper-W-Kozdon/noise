@@ -252,6 +252,122 @@ fbm_noise4(float x, float y, float z, float w, int octaves, float persistence, f
     return total / max;
 }
 
+#define dot5(v1, x, y, z, w, u) ((v1)[0]*(x) + (v1)[1]*(y) + (v1)[2]*(z) + (v1)[3]*(w) + (v1)[3]*(u))
+
+#define F5 0.2898979485566356f /* (sqrt(6.0) - 1.0) / 5.0 */
+#define G5 0.1183503419072274f /* (1.0 - 1.0/sqrt(6.0)) / 5.0 */
+
+float 
+noise5(float x, float y, float z, float w, float u) {
+    float noise[6] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+
+    float s = (x + y + z + w + u) * F5;
+    float i = floorf(x + s);
+    float j = floorf(y + s);
+    float k = floorf(z + s);
+    float l = floorf(w + s);
+    float m = floorf(u + s);
+    float t = (i + j + k + l) * G5;
+
+    float x0 = x - (i - t);
+    float y0 = y - (j - t);
+    float z0 = z - (k - t);
+    float w0 = w - (l - t);
+    float u0 = u - (m - t);
+
+    int c = (x0 > y0)*32 + (x0 > z0)*16 + (y0 > z0)*8 + (x0 > w0)*4 + (y0 > w0)*2 + (z0 > w0);
+    // int c = (x0 > y0) + (x0 > z0) + (y0 > z0) + (x0 > w0) + (y0 > w0) + (z0 > w0) + (x0 > u0) + (y0 > u0) + (z0 > u0) + (w0 > u0); <- the index formula needs to be adapted to 5D
+    int i1 = SIMPLEX5[c][0]>=4;
+    int j1 = SIMPLEX5[c][1]>=4;
+    int k1 = SIMPLEX5[c][2]>=4;
+    int l1 = SIMPLEX5[c][3]>=4;
+    int m1 = SIMPLEX5[c][4]>=4;
+    int i2 = SIMPLEX5[c][0]>=3;
+    int j2 = SIMPLEX5[c][1]>=3;
+    int k2 = SIMPLEX5[c][2]>=3;
+    int l2 = SIMPLEX5[c][3]>=3;
+    int m2 = SIMPLEX5[c][4]>=3;
+    int i3 = SIMPLEX5[c][0]>=2;
+    int j3 = SIMPLEX5[c][1]>=2;
+    int k3 = SIMPLEX5[c][2]>=2;
+    int l3 = SIMPLEX5[c][3]>=2;
+    int m3 = SIMPLEX5[c][4]>=2;
+    int i4 = SIMPLEX5[c][0]>=1;
+    int j4 = SIMPLEX5[c][1]>=1;
+    int k4 = SIMPLEX5[c][2]>=1;
+    int l4 = SIMPLEX5[c][3]>=1;
+    int m4 = SIMPLEX5[c][4]>=1;
+
+    // the formulas below need to be checked for correctness when using 5D simplex traversal lookup table; the formulas above might be edited instead
+    float x1 = x0 - i1 + G5;
+    float y1 = y0 - j1 + G5;
+    float z1 = z0 - k1 + G5;
+    float w1 = w0 - l1 + G5;
+    float u1 = u0 - m1 + G5;
+    float x2 = x0 - i2 + 2.0f*G5;
+    float y2 = y0 - j2 + 2.0f*G5;
+    float z2 = z0 - k2 + 2.0f*G5;
+    float w2 = w0 - l2 + 2.0f*G5;
+    float u2 = u0 - m2 + 2.0f*G5;
+    float x3 = x0 - i3 + 3.0f*G5;
+    float y3 = y0 - j3 + 3.0f*G5;
+    float z3 = z0 - k3 + 3.0f*G5;
+    float w3 = w0 - l3 + 3.0f*G5;
+    float u3 = u0 - m3 + 3.0f*G5;
+    float x4 = x0 - i4 + 4.0f*G5;
+    float y4 = y0 - j4 + 4.0f*G5;
+    float z4 = z0 - k4 + 4.0f*G5;
+    float w4 = w0 - l4 + 4.0f*G5;
+    float u4 = u0 - m4 + 4.0f*G5;
+    float x5 = x0 - 1.0f + 5.0f*G5;
+    float y5 = y0 - 1.0f + 5.0f*G5;
+    float z5 = z0 - 1.0f + 5.0f*G5;
+    float w5 = w0 - 1.0f + 5.0f*G5;
+    float u5 = u0 - 1.0f + 5.0f*G5;
+
+    int I = (int)i & 255;
+    int J = (int)j & 255;
+    int K = (int)k & 255;
+    int L = (int)l & 255;
+    int M = (int)m & 255;
+
+    // extend permutations to the 5th dimension
+    int gi0 = PERM[I + PERM[J + PERM[K + PERM[L]]]] & 0x1f;
+    int gi1 = PERM[I + i1 + PERM[J + j1 + PERM[K + k1 + PERM[L + l1]]]] & 0x1f; 
+    int gi2 = PERM[I + i2 + PERM[J + j2 + PERM[K + k2 + PERM[L + l2]]]] & 0x1f; 
+    int gi3 = PERM[I + i3 + PERM[J + j3 + PERM[K + k3 + PERM[L + l3]]]] & 0x1f; 
+    int gi4 = PERM[I + 1 + PERM[J + 1 + PERM[K + 1 + PERM[L + 1]]]] & 0x1f;
+    float t0, t1, t2, t3, t4;
+
+    // add t5 and extend the remaining ones to include u0 and gi5
+    t0 = 0.6f - x0*x0 - y0*y0 - z0*z0 - w0*w0;
+    if (t0 >= 0.0f) {
+        t0 *= t0;
+        noise[0] = t0 * t0 * dot5(GRAD4[gi0], x0, y0, z0, w0);
+    }
+    t1 = 0.6f - x1*x1 - y1*y1 - z1*z1 - w1*w1;
+    if (t1 >= 0.0f) {
+        t1 *= t1;
+        noise[1] = t1 * t1 * dot5(GRAD4[gi1], x1, y1, z1, w1);
+    }
+    t2 = 0.6f - x2*x2 - y2*y2 - z2*z2 - w2*w2;
+    if (t2 >= 0.0f) {
+        t2 *= t2;
+        noise[2] = t2 * t2 * dot5(GRAD4[gi2], x2, y2, z2, w2);
+    }
+    t3 = 0.6f - x3*x3 - y3*y3 - z3*z3 - w3*w3;
+    if (t3 >= 0.0f) {
+        t3 *= t3;
+        noise[3] = t3 * t3 * dot5(GRAD4[gi3], x3, y3, z3, w3);
+    }
+    t4 = 0.6f - x4*x4 - y4*y4 - z4*z4 - w4*w4;
+    if (t4 >= 0.0f) {
+        t4 *= t4;
+        noise[4] = t4 * t4 * dot5(GRAD4[gi4], x4, y4, z4, w4);
+    }
+
+    return 27.0 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4]);
+}
 
 static PyObject *
 py_noise2(PyObject *self, PyObject *args, PyObject *kwargs)
