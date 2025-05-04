@@ -1,4 +1,6 @@
 import itertools
+import re
+import pathlib
 # print(list(itertools.permutations([0, 1, 2, 3, 4])))
 
 # {{0,1,2,3,4},{0,1,2,4,3},{0,1,3,2,4},{0,1,3,4,2},
@@ -46,7 +48,6 @@ permutations = list(itertools.permutations([0, 1, 2, 3, 4]))  # permutations of 
 # (x(i) > y(i))*512 + (x(i) > z(i))*256 + (x(i) > w(i))*128 + (x(i) > u(i))*64 + (y(i) > z(i))*32 + (y(i) > w(i))*16 + (y(i) > u(i))*8 + (z(i) > w(i))*4 + (z(i) > u(i))*2 + (w(i) > u(i))*1
 
 simplex5: list[tuple[int, ...]] = [(0, 0, 0, 0, 0) for _ in range(1024)]
-print(len(simplex5))
 
 # comparisons translate to:
 # simplex5entryindex = [permutationsentry[0] > permutationsentry[1], permutationsentry[0] > permutationsentry[2], permutationsentry[0] > permutationsentry[3], permutationsentry[0] > permutationsentry[4],
@@ -62,7 +63,33 @@ for permutationsindex, permutationsentry in enumerate(permutations):
     simplex5entryindex = sum([simplex5entryindextable[len(simplex5entryindextable) - 1 - index] * 2**index for index in range(len(simplex5entryindextable) - 1, 0 - 1, -1)])
     simplex5[simplex5entryindex] = permutationsentry
 
-print(simplex5[0:10])
+counter = 0
+for elem in simplex5:
+    if elem != (0, 0, 0, 0, 0):
+        counter += 1
+
+assert len(permutations) == counter
+
+simplex5string = re.sub(r"[\[|(]", "{", str(simplex5))
+simplex5string = re.sub(r"[\]|)]", "}", simplex5string)
+simplex5string = re.sub(r" ", "", simplex5string)
+simplex5string = re.sub("},", "}, ", simplex5string)
+simplex5stringlist = re.split(r" ", simplex5string)
+
+index = 0
+for counter in range(len(simplex5stringlist)):
+    if not (counter + 1) % 8:
+        # print(-(counter + 1))
+        index += 1
+        simplex5stringlist.insert(index + counter, "\n")
+
+simplex5string = "".join(simplex5stringlist)
+simplex5string = "const unsigned char SIMPLEX5[][5] = {\n" + simplex5string[1:]
+
+savepath = pathlib.Path(__file__).parent
+
+with open(f"{savepath}\\_noise5d.h", "w") as file:
+    file.write(simplex5string)
 
 # for i in range(3 - 1, 0 - 1, -1):
 #     print(i)
