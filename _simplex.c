@@ -253,7 +253,7 @@ fbm_noise4(float x, float y, float z, float w, int octaves, float persistence, f
     return total / max;
 }
 
-#define dot5(v1, x, y, z, w, u) ((v1)[0]*(x) + (v1)[1]*(y) + (v1)[2]*(z) + (v1)[3]*(w) + (v1)[3]*(u))
+#define dot5(v1, x, y, z, w, u) ((v1)[0]*(x) + (v1)[1]*(y) + (v1)[2]*(z) + (v1)[3]*(w) + (v1)[4]*(u))
 
 #define F5 0.2898979485566356f /* (sqrt(6.0) - 1.0) / 5.0 */
 #define G5 0.1183503419072274f /* (1.0 - 1.0/sqrt(6.0)) / 5.0 */
@@ -340,38 +340,38 @@ noise5(float x, float y, float z, float w, float u) {
     int gi5 = PERM5[I + 1 + PERM5[J + 1 + PERM5[K + 1 + PERM5[L + 1 + PERM5[M + 1]]]]] & 0x1f;;
     float t0, t1, t2, t3, t4, t5;
 
-    t0 = 0.6f - x0*x0 - y0*y0 - z0*z0 - w0*w0 - u0*u0;
+    t0 = 0.7f - x0*x0 - y0*y0 - z0*z0 - w0*w0 - u0*u0;
     if (t0 >= 0.0f) {
         t0 *= t0;
         noise[0] = t0 * t0 * dot5(GRAD5[gi0], x0, y0, z0, w0, u0);
     }
-    t1 = 0.6f - x1*x1 - y1*y1 - z1*z1 - w1*w1 - u1*u1;
+    t1 = 0.7f - x1*x1 - y1*y1 - z1*z1 - w1*w1 - u1*u1;
     if (t1 >= 0.0f) {
         t1 *= t1;
         noise[1] = t1 * t1 * dot5(GRAD5[gi1], x1, y1, z1, w1, u1);
     }
-    t2 = 0.6f - x2*x2 - y2*y2 - z2*z2 - w2*w2 - u2*u2;
+    t2 = 0.7f - x2*x2 - y2*y2 - z2*z2 - w2*w2 - u2*u2;
     if (t2 >= 0.0f) {
         t2 *= t2;
         noise[2] = t2 * t2 * dot5(GRAD5[gi2], x2, y2, z2, w2, u2);
     }
-    t3 = 0.6f - x3*x3 - y3*y3 - z3*z3 - w3*w3 - u3*u3;
+    t3 = 0.7f - x3*x3 - y3*y3 - z3*z3 - w3*w3 - u3*u3;
     if (t3 >= 0.0f) {
         t3 *= t3;
         noise[3] = t3 * t3 * dot5(GRAD5[gi3], x3, y3, z3, w3, u3);
     }
-    t4 = 0.6f - x4*x4 - y4*y4 - z4*z4 - w4*w4 - u4*u4;
+    t4 = 0.7f - x4*x4 - y4*y4 - z4*z4 - w4*w4 - u4*u4;
     if (t4 >= 0.0f) {
         t4 *= t4;
         noise[4] = t4 * t4 * dot5(GRAD5[gi4], x4, y4, z4, w4, u4);
     }
-    t5 = 0.6f - x5*x5 - y5*y5 - z5*z5 - w5*w5 - u5*u5;
+    t5 = 0.7f - x5*x5 - y5*y5 - z5*z5 - w5*w5 - u5*u5;
     if (t5 >= 0.0f) {
         t5 *= t5;
         noise[5] = t5 * t5 * dot5(GRAD5[gi5], x5, y5, z5, w5, u5);
     }
 // change the numeric factor in return
-    return 27.0 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
+    return 10 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
 }
 
 static PyObject *
