@@ -6,6 +6,7 @@
 #include <math.h>
 #include <float.h>
 #include "_noise.h"
+#include "_noise5d.h"
 
 // 2D simplex skew factors
 #define F2 0.3660254037844386f  // 0.5 * (sqrt(3.0) - 1.0)
@@ -267,7 +268,7 @@ noise5(float x, float y, float z, float w, float u) {
     float k = floorf(z + s);
     float l = floorf(w + s);
     float m = floorf(u + s);
-    float t = (i + j + k + l) * G5;
+    float t = (i + j + k + l + m) * G5;
 
     float x0 = x - (i - t);
     float y0 = y - (j - t);
@@ -325,48 +326,52 @@ noise5(float x, float y, float z, float w, float u) {
     float w5 = w0 - 1.0f + 5.0f*G5;
     float u5 = u0 - 1.0f + 5.0f*G5;
 
-    int I = (int)i & 255;
-    int J = (int)j & 255;
-    int K = (int)k & 255;
-    int L = (int)l & 255;
-    int M = (int)m & 255;
+    int I = (int)i & 1023;
+    int J = (int)j & 1023;
+    int K = (int)k & 1023;
+    int L = (int)l & 1023;
+    int M = (int)m & 1023;
 
-    // extend permutations to the 5th dimension
-    int gi0 = PERM[I + PERM[J + PERM[K + PERM[L]]]] & 0x1f;
-    int gi1 = PERM[I + i1 + PERM[J + j1 + PERM[K + k1 + PERM[L + l1]]]] & 0x1f; 
-    int gi2 = PERM[I + i2 + PERM[J + j2 + PERM[K + k2 + PERM[L + l2]]]] & 0x1f; 
-    int gi3 = PERM[I + i3 + PERM[J + j3 + PERM[K + k3 + PERM[L + l3]]]] & 0x1f; 
-    int gi4 = PERM[I + 1 + PERM[J + 1 + PERM[K + 1 + PERM[L + 1]]]] & 0x1f;
-    float t0, t1, t2, t3, t4;
+    int gi0 = PERM5[I + PERM5[J + PERM5[K + PERM5[L + PERM5[M]]]]] & 0x1f;
+    int gi1 = PERM5[I + i1 + PERM5[J + j1 + PERM5[K + k1 + PERM5[L + l1 + PERM5[M + m1]]]]] & 0x1f; 
+    int gi2 = PERM5[I + i2 + PERM5[J + j2 + PERM5[K + k2 + PERM5[L + l2 + PERM5[M + m2]]]]] & 0x1f; 
+    int gi3 = PERM5[I + i3 + PERM5[J + j3 + PERM5[K + k3 + PERM5[L + l3 + PERM5[M + m3]]]]] & 0x1f; 
+    int gi4 = PERM5[I + i4 + PERM5[J + j4 + PERM5[K + k4 + PERM5[L + l4 + PERM5[M + m4]]]]] & 0x1f; 
+    int gi5 = PERM5[I + 1 + PERM5[J + 1 + PERM5[K + 1 + PERM5[L + 1 + PERM5[M + 1]]]]] & 0x1f;;
+    float t0, t1, t2, t3, t4, t5;
 
-    // add t5 and extend the remaining ones to include u0 and gi5
-    t0 = 0.6f - x0*x0 - y0*y0 - z0*z0 - w0*w0;
+    t0 = 0.6f - x0*x0 - y0*y0 - z0*z0 - w0*w0 - u0*u0;
     if (t0 >= 0.0f) {
         t0 *= t0;
-        noise[0] = t0 * t0 * dot5(GRAD4[gi0], x0, y0, z0, w0);
+        noise[0] = t0 * t0 * dot5(GRAD5[gi0], x0, y0, z0, w0, u0);
     }
-    t1 = 0.6f - x1*x1 - y1*y1 - z1*z1 - w1*w1;
+    t1 = 0.6f - x1*x1 - y1*y1 - z1*z1 - w1*w1 - u1*u1;
     if (t1 >= 0.0f) {
         t1 *= t1;
-        noise[1] = t1 * t1 * dot5(GRAD4[gi1], x1, y1, z1, w1);
+        noise[1] = t1 * t1 * dot5(GRAD5[gi1], x1, y1, z1, w1, u1);
     }
-    t2 = 0.6f - x2*x2 - y2*y2 - z2*z2 - w2*w2;
+    t2 = 0.6f - x2*x2 - y2*y2 - z2*z2 - w2*w2 - u2*u2;
     if (t2 >= 0.0f) {
         t2 *= t2;
-        noise[2] = t2 * t2 * dot5(GRAD4[gi2], x2, y2, z2, w2);
+        noise[2] = t2 * t2 * dot5(GRAD5[gi2], x2, y2, z2, w2, u2);
     }
-    t3 = 0.6f - x3*x3 - y3*y3 - z3*z3 - w3*w3;
+    t3 = 0.6f - x3*x3 - y3*y3 - z3*z3 - w3*w3 - u3*u3;
     if (t3 >= 0.0f) {
         t3 *= t3;
-        noise[3] = t3 * t3 * dot5(GRAD4[gi3], x3, y3, z3, w3);
+        noise[3] = t3 * t3 * dot5(GRAD5[gi3], x3, y3, z3, w3, u3);
     }
-    t4 = 0.6f - x4*x4 - y4*y4 - z4*z4 - w4*w4;
+    t4 = 0.6f - x4*x4 - y4*y4 - z4*z4 - w4*w4 - u4*u4;
     if (t4 >= 0.0f) {
         t4 *= t4;
-        noise[4] = t4 * t4 * dot5(GRAD4[gi4], x4, y4, z4, w4);
+        noise[4] = t4 * t4 * dot5(GRAD5[gi4], x4, y4, z4, w4, u4);
     }
-
-    return 27.0 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4]);
+    t5 = 0.6f - x5*x5 - y5*y5 - z5*z5 - w5*w5 - u5*u5;
+    if (t5 >= 0.0f) {
+        t5 *= t5;
+        noise[5] = t5 * t5 * dot5(GRAD5[gi5], x5, y5, z5, w5, u5);
+    }
+// change the numeric factor in return
+    return 27.0 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
 }
 
 static PyObject *

@@ -107,11 +107,35 @@ for counter in range(len(perms)):
 permsstring = ",".join(permsstringlist)
 permsstring = re.sub(" ", "", permsstring)
 permsstring = re.sub("\n,", "\n", permsstring)
-permsstring = "const unsigned char PERM5[] = {\n" + permsstring[1:-2] + ";"
+permsstring = "const unsigned char PERM5[] = {\n" + permsstring[1:-2] + ";\n\n"
 
+
+gradperms = list(itertools.product([1, -1], repeat=4))
+numperms = len(gradperms)
+
+grad5 = [gradperms[index % numperms][0: int(index // numperms)] + (0,) + gradperms[index % numperms][int(index // numperms):] for index in range(5 * numperms)]
+assert len(grad5) == 80
+
+
+grad5string = re.sub(r"[\[|(]", "{", str(grad5))
+grad5string = re.sub(r"[\]|)]", "} ", grad5string)
+grad5string = re.sub(" ", "", grad5string)
+grad5string = re.sub("},", "}, ", grad5string)
+grad5stringlist = re.split(" ", grad5string)
+
+index = 0
+for counter in range(len(grad5stringlist)):
+    if not (counter + 1) % 8:
+        # print(-(counter + 1))
+        index += 1
+        grad5stringlist.insert(index + counter, "\n")
+
+grad5string = "".join(grad5stringlist)
+
+grad5string = "const float GRAD5[][5] = {\n" + grad5string[1:-1] + ";"
 
 savepath = pathlib.Path(__file__).parent
 
 with open(f"{savepath}\\_noise5d.h", "w") as file:
-    inpt = simplex5string + permsstring
+    inpt = simplex5string + permsstring + grad5string
     file.write(inpt)
