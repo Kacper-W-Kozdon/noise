@@ -1,6 +1,9 @@
 import itertools
 import re
 import pathlib
+import random
+
+random.seed(42)
 # print(list(itertools.permutations([0, 1, 2, 3, 4])))
 
 # {{0,1,2,3,4},{0,1,2,4,3},{0,1,3,2,4},{0,1,3,4,2},
@@ -84,12 +87,31 @@ for counter in range(len(simplex5stringlist)):
         simplex5stringlist.insert(index + counter, "\n")
 
 simplex5string = "".join(simplex5stringlist)
-simplex5string = "const unsigned char SIMPLEX5[][5] = {\n" + simplex5string[1:]
+simplex5string = "const unsigned char SIMPLEX5[][5] = {\n" + simplex5string[1:-1] + ";\n\n"
+
+perms = random.choices(range(0, 255), k=1024)
+
+permsstring = str(perms)
+permsstring = re.sub(r"[\[]", "{", permsstring)
+permsstring = re.sub(r"[\]]", "}", permsstring)
+
+permsstringlist = permsstring.split(",")
+
+index = 0
+for counter in range(len(perms)):
+    if not (counter + 1) % 32:
+        # print(-(counter + 1))
+        index += 1
+        permsstringlist.insert(index + counter, "\n")
+
+permsstring = ",".join(permsstringlist)
+permsstring = re.sub(" ", "", permsstring)
+permsstring = re.sub("\n,", "\n", permsstring)
+permsstring = "const unsigned char PERM5[] = {\n" + permsstring[1:-2] + ";"
+
 
 savepath = pathlib.Path(__file__).parent
 
 with open(f"{savepath}\\_noise5d.h", "w") as file:
-    file.write(simplex5string)
-
-# for i in range(3 - 1, 0 - 1, -1):
-#     print(i)
+    inpt = simplex5string + permsstring
+    file.write(inpt)
