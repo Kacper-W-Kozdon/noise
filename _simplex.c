@@ -276,8 +276,8 @@ noise5(float x, float y, float z, float w, float u) {
     float w0 = w - (l - t);
     float u0 = u - (m - t);
 
-    int c = (x0 > y0)*32 + (x0 > z0)*16 + (y0 > z0)*8 + (x0 > w0)*4 + (y0 > w0)*2 + (z0 > w0);
-    // int c = (x0 > y0) + (x0 > z0) + (y0 > z0) + (x0 > w0) + (y0 > w0) + (z0 > w0) + (x0 > u0) + (y0 > u0) + (z0 > u0) + (w0 > u0); <- the index formula needs to be adapted to 5D
+    // int c = (x0 > y0)*32 + (x0 > z0)*16 + (y0 > z0)*8 + (x0 > w0)*4 + (y0 > w0)*2 + (z0 > w0);
+    int c = (x0 > y0)*512 + (x0 > z0)*256 + (x0 > w0)*128 + (x0 > u0)*64 + (y0 > z0)*32 + (y0 > w0)*16 + (y0 > u0)*8 + (z0 > w0)*4 + (z0 > u0)*2 + (w0 > u0);
     int i1 = SIMPLEX5[c][0]>=4;
     int j1 = SIMPLEX5[c][1]>=4;
     int k1 = SIMPLEX5[c][2]>=4;
@@ -494,6 +494,32 @@ py_noise4(PyObject *self, PyObject *args, PyObject *kwargs)
 	}
 }
 
+static PyObject *
+py_noise5(PyObject *self, PyObject *args, PyObject *kwargs)
+{
+	float x, y, z, w, u;
+	int octaves = 1;
+	float persistence = 0.5f;
+	float lacunarity = 2.0f;
+
+	static char *kwlist[] = {"x", "y", "z", "w", "u", "octaves", "persistence", "lacunarity", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ffff|iff:snoise4", kwlist,
+		&x, &y, &z, &w, &u, &octaves, &persistence, &lacunarity))
+		return NULL;
+	
+	if (octaves == 1) {
+		// Single octave, return simple noise
+		return (PyObject *) PyFloat_FromDouble((double) noise5(x, y, z, w, u));
+	} else if (octaves > 1) {
+		return (PyObject *) PyFloat_FromDouble(
+            (double) fbm_noise4(x, y, z, w, u, octaves, persistence, lacunarity));
+	} else {
+		PyErr_SetString(PyExc_ValueError, "Expected octaves value > 0");
+		return NULL;
+	}
+}
+
 static PyMethodDef simplex_functions[] = {
 	{"noise2", (PyCFunction)py_noise2, METH_VARARGS | METH_KEYWORDS, 
 		"noise2(x, y, octaves=1, persistence=0.5, lacunarity=2.0, repeatx=None, repeaty=None, base=0.0) "
@@ -525,6 +551,15 @@ static PyMethodDef simplex_functions[] = {
 		"persistence -- specifies the amplitude of each successive octave relative\n"
 		"to the one below it. Defaults to 0.5 (each higher octave's amplitude\n"
 		"is halved). Note the amplitude of the first pass is always 1.0.\n\n"
+        "lacunarity -- specifies the frequency of each successive octave relative\n"
+        "to the one below it, similar to persistence. Defaults to 2.0."},
+    {"noise5", (PyCFunction)py_noise4, METH_VARARGS | METH_KEYWORDS, 
+        "noise5(x, y, z, w, u, octaves=1, persistence=0.5, lacunarity=2.0) return simplex noise value for "
+        "specified 5D coordinate\n\n"
+        "octaves -- specifies the number of passes, defaults to 1 (simple noise).\n\n"
+        "persistence -- specifies the amplitude of each successive octave relative\n"
+        "to the one below it. Defaults to 0.5 (each higher octave's amplitude\n"
+        "is halved). Note the amplitude of the first pass is always 1.0.\n\n"
         "lacunarity -- specifies the frequency of each successive octave relative\n"
         "to the one below it, similar to persistence. Defaults to 2.0."},
 	{NULL}
