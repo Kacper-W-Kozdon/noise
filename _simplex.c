@@ -374,6 +374,23 @@ noise5(float x, float y, float z, float w, float u) {
     return 10 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
 }
 
+static inline float
+fbm_noise5(float x, float y, float z, float w, float u, int octaves, float persistence, float lacunarity) {
+    float freq = 1.0f;
+    float amp = 1.0f;
+    float max = 1.0f;
+    float total = noise5(x, y, z, w, u);
+    int i;
+
+    for (i = 1; i < octaves; ++i) {
+        freq *= lacunarity;
+        amp *= persistence;
+        max += amp;
+        total += noise5(x * freq, y * freq, z * freq, w * freq, u * freq) * amp;
+    }
+    return total / max;
+}
+
 static PyObject *
 py_noise2(PyObject *self, PyObject *args, PyObject *kwargs)
 {
@@ -513,7 +530,7 @@ py_noise5(PyObject *self, PyObject *args, PyObject *kwargs)
 		return (PyObject *) PyFloat_FromDouble((double) noise5(x, y, z, w, u));
 	} else if (octaves > 1) {
 		return (PyObject *) PyFloat_FromDouble(
-            (double) fbm_noise4(x, y, z, w, u, octaves, persistence, lacunarity));
+            (double) fbm_noise5(x, y, z, w, u, octaves, persistence, lacunarity));
 	} else {
 		PyErr_SetString(PyExc_ValueError, "Expected octaves value > 0");
 		return NULL;
