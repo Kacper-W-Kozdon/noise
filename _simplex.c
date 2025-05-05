@@ -371,7 +371,7 @@ noise5(float x, float y, float z, float w, float u) {
         noise[5] = t5 * t5 * dot5(GRAD5[gi5], x5, y5, z5, w5, u5);
     }
 // change the numeric factor in return
-    return 10 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
+    return 10.0 * (noise[0] + noise[1] + noise[2] + noise[3] + noise[4] + noise[5]);
 }
 
 static inline float
@@ -521,7 +521,7 @@ py_noise5(PyObject *self, PyObject *args, PyObject *kwargs)
 
 	static char *kwlist[] = {"x", "y", "z", "w", "u", "octaves", "persistence", "lacunarity", NULL};
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ffff|iff:snoise4", kwlist,
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "fffff|iff:snoise5", kwlist,
 		&x, &y, &z, &w, &u, &octaves, &persistence, &lacunarity))
 		return NULL;
 	
@@ -570,7 +570,7 @@ static PyMethodDef simplex_functions[] = {
 		"is halved). Note the amplitude of the first pass is always 1.0.\n\n"
         "lacunarity -- specifies the frequency of each successive octave relative\n"
         "to the one below it, similar to persistence. Defaults to 2.0."},
-    {"noise5", (PyCFunction)py_noise4, METH_VARARGS | METH_KEYWORDS, 
+    {"noise5", (PyCFunction)py_noise5, METH_VARARGS | METH_KEYWORDS, 
         "noise5(x, y, z, w, u, octaves=1, persistence=0.5, lacunarity=2.0) return simplex noise value for "
         "specified 5D coordinate\n\n"
         "octaves -- specifies the number of passes, defaults to 1 (simple noise).\n\n"
