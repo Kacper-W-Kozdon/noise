@@ -326,18 +326,18 @@ noise5(float x, float y, float z, float w, float u) {
     float w5 = w0 - 1.0f + 5.0f*G5;
     float u5 = u0 - 1.0f + 5.0f*G5;
 
-    int I = (int)i & 1023;
-    int J = (int)j & 1023;
-    int K = (int)k & 1023;
-    int L = (int)l & 1023;
-    int M = (int)m & 1023;
+    int I = (int)i & 255;
+    int J = (int)j & 255;
+    int K = (int)k & 255;
+    int L = (int)l & 255;
+    int M = (int)m & 255;
 
-    int gi0 = PERM5[I + PERM5[J + PERM5[K + PERM5[L + PERM5[M]]]]] & 0x1f;
-    int gi1 = PERM5[I + i1 + PERM5[J + j1 + PERM5[K + k1 + PERM5[L + l1 + PERM5[M + m1]]]]] & 0x1f; 
-    int gi2 = PERM5[I + i2 + PERM5[J + j2 + PERM5[K + k2 + PERM5[L + l2 + PERM5[M + m2]]]]] & 0x1f; 
-    int gi3 = PERM5[I + i3 + PERM5[J + j3 + PERM5[K + k3 + PERM5[L + l3 + PERM5[M + m3]]]]] & 0x1f; 
-    int gi4 = PERM5[I + i4 + PERM5[J + j4 + PERM5[K + k4 + PERM5[L + l4 + PERM5[M + m4]]]]] & 0x1f; 
-    int gi5 = PERM5[I + 1 + PERM5[J + 1 + PERM5[K + 1 + PERM5[L + 1 + PERM5[M + 1]]]]] & 0x1f;;
+    int gi0 = PERM[I + PERM[J + PERM[K + PERM[L + PERM[M]]]]] & 0x4F;  // 0x4f hex == 79 dec to have indices [0, ..., 79] for 80 edges of a 5D simplex
+    int gi1 = PERM[I + i1 + PERM[J + j1 + PERM[K + k1 + PERM[L + l1 + PERM[M + m1]]]]] & 0x4F; 
+    int gi2 = PERM[I + i2 + PERM[J + j2 + PERM[K + k2 + PERM[L + l2 + PERM[M + m2]]]]] & 0x4F; 
+    int gi3 = PERM[I + i3 + PERM[J + j3 + PERM[K + k3 + PERM[L + l3 + PERM[M + m3]]]]] & 0x4F; 
+    int gi4 = PERM[I + i4 + PERM[J + j4 + PERM[K + k4 + PERM[L + l4 + PERM[M + m4]]]]] & 0x4F; 
+    int gi5 = PERM[I + 1 + PERM[J + 1 + PERM[K + 1 + PERM[L + 1 + PERM[M + 1]]]]] & 0x4F;;
     float t0, t1, t2, t3, t4, t5;
 
     t0 = 0.7f - x0*x0 - y0*y0 - z0*z0 - w0*w0 - u0*u0;

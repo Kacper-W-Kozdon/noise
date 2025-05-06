@@ -137,5 +137,5 @@ grad5string = "const float GRAD5[][5] = {\n" + grad5string[1:-1] + ";"
 savepath = pathlib.Path(__file__).parent
 
 with open(f"{savepath}\\_noise5d.h", "w") as file:
-    inpt = simplex5string + permsstring + grad5string
+    inpt = simplex5string + grad5string
     file.write(inpt)
